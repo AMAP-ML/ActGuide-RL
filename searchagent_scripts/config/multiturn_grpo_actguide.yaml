@@ -1,0 +1,82 @@
+hydra:
+  run:
+    dir: ${PROJECT_DIR:-/path/to/ActGuide-RL}
+  job:
+    chdir: false
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+data:
+  max_prompt_length: 30480
+  max_response_length: 40960
+  train_batch_size: 32
+  return_raw_chat: True
+  shuffle: True
+  seed: 42
+  guidance:
+    test_enabled: True 
+    enabled: True                           # master switch: inject guidance into rollout prompts
+    injection_mode: user_prompt        # user_prompt | assistant_prefix
+    fixed_k: -1                         # -1 = use all actions; >0 = use first k actions
+    fixed_ratio: -1
+    adaptive:
+      enabled: True                         # sub-switch: binary-search for optimal k per sample
+      max_probe_steps: 5                    # ceil(log2(max_actions))
+      k_offset: 0
+      probe_rollouts: 2                     # number of probe rollouts per mid-k
+    guided_offpolicy:
+      enabled: True                         # guided rollout as behavior policy, train unguided target
+      mode: "selective"                          # guided on-policy (main) + unguided off-policy (auxiliary)
+      onpolicy_coef: 0                    # loss weight for on-policy guided branch (proven main line)
+      offpolicy_coef: 1.0                   # loss weight for off-policy unguided branch (auxiliary)
+      onpolicy_clip_ratio: -1               # PPO clip for on-policy; -1 = use actor default (0.2)
+      onpolicy_clip_ratio_c: -1             # dual-clip lower bound for on-policy; -1 = actor default (3.0)
+      offpolicy_clip_ratio: -1             # no clip for off-policy (ratio unconstrained)
+      offpolicy_clip_ratio_c: -1           # no dual-clip for off-policy
+      luffy_gamma: 0
+  on_policy_distillation:
+    enabled: False
+    distill_coef: 0.1           # beta weight for KL distillation loss
+    distill_coef_min: 0.0       # minimum coef after decay
+    distill_coef_decay: 1.0     # multiplicative decay per step (1.0 = no decay)
+    policy_loss_coef: 0.0       # set to 0.0 for OPD-only ablation
+    reward_gate: False          # only distill samples where teacher reward > student reward
+    reward_gate_margin: 0.5     # teacher_reward > student_reward + margin
+    teacher_rollout_n: 1        # number of guided teacher rollouts for gate (1-2 is enough)
+
+custom_reward_function:
+  path: ${PROJECT_DIR:-/path/to/ActGuide-RL}/verl/utils/reward_score/llm_judge.py
+  name: compute_score
+  reward_kwargs:
+    endpoint_list:
+      # Reward gateway endpoints. Override at runtime, e.g.:
+      #   custom_reward_function.reward_kwargs.endpoint_list='[http://your-host:8000/reward1/v1,http://your-host:8000/reward2/v1]'
+      - http://127.0.0.1:8000/reward1/v1
+      - http://127.0.0.1:8000/reward2/v1
+      - http://127.0.0.1:8000/reward3/v1
+      - http://127.0.0.1:8000/reward4/v1
+      - http://127.0.0.1:8000/reward5/v1
+      - http://127.0.0.1:8000/reward6/v1
+      - http://127.0.0.1:8000/reward7/v1
+      - http://127.0.0.1:8000/reward8/v1
+    model_name: /mnt/workspace/common/models/Qwen3-30B-A3B-Instruct-2507 
+    # model_name: /mnt/workspace/common/models/Qwen3-235B-A22B-Instruct-2507
+    max_concurrent: 50
+    max_retries: 5
+    timeout: 60.0
+
+actor_rollout_ref:
+  hybrid_engine: True
+  rollout:
+    name: sglang
+    multi_turn:
+      enable: True
+      max_assistant_turns: 30
+      max_user_turns: 30
+      tokenization_sanity_check_mode: ignore_strippable
+      format: hermes
+      pass_tool_schema_to_template: false  # set to false when tools are in prompt (e.g. DeepTraceHub)

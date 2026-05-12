@@ -1,0 +1,61 @@
+# Example config to use LLM-as-Judge reward (verl.utils.reward_score.llm_judge).
+# Aligns with DeepTraceHub val_local.sh: remote OpenAI-compatible API (e.g. vLLM on 6001).
+#
+# ========== How to use (where to pass) ==========
+#
+# 1) Command-line overrides (recommended)
+#    Run from project root (verl_local). Add these to your python -m verl.trainer.main_ppo ...:
+#
+#    custom_reward_function.path=verl/utils/reward_score/llm_judge.py \
+#    custom_reward_function.name=compute_score \
+#    custom_reward_function.reward_kwargs.endpoint=http://127.0.0.1:6001/v1 \
+#    # Or two judge vLLM ports (requests spread across both):
+#    # custom_reward_function.reward_kwargs.endpoint_list='[http://127.0.0.1:6001/v1,http://127.0.0.1:6002/v1]' \
+#    custom_reward_function.reward_kwargs.model_name=Qwen3-30B-A3B \
+#    custom_reward_function.reward_kwargs.max_concurrent=32 \
+#    reward_model.reward_manager=naive \
+#    data.train_files=... \
+#    ...
+#
+# 2) Merge into your own trainer YAML
+#    Copy the custom_reward_function and reward_model blocks below into your trainer yaml
+#    (e.g. verl/trainer/config/ppo_trainer.yaml or a recipe config like recipe/xxx/config.yaml).
+#
+# Data: parquet must have reward_model.ground_truth and extra_info["question"] (prompt for judge).
+# ================================================
+#
+# Single-sample (async, rate-limited) — use with reward_manager: naive
+# -----------------------------------------------------------------------
+custom_reward_function:
+  path: "verl/utils/reward_score/llm_judge.py"   # relative to CWD when launching (usually verl_local)
+  name: compute_score
+  reward_kwargs:
+    # Single judge vLLM:
+    endpoint: "http://127.0.0.1:6001/v1"
+    # Or two (or more) ports — requests are spread randomly across them:
+    # endpoint_list:
+    #   - "http://127.0.0.1:6001/v1"
+    #   - "http://127.0.0.1:6002/v1"
+    model_name: "Qwen3-30B-A3B"
+    max_concurrent: 32
+    max_retries: 5
+    timeout: 60.0
+    # api_key: "EMPTY"                             # optional; default env OPENAI_API_KEY
+
+reward_model:
+  reward_manager: naive
+
+# Batch (async batch with rate limit) — use with reward_manager: batch
+# -----------------------------------------------------------------------
+# custom_reward_function:
+#   path: "verl/utils/reward_score/llm_judge.py"
+#   name: compute_score_batch
+#   reward_kwargs:
+#     endpoint: "http://127.0.0.1:6001/v1"
+#     model_name: "Qwen3-30B-A3B"
+#     max_concurrent: 32
+#     max_retries: 5
+#     timeout: 60.0
+#
+# reward_model:
+#   reward_manager: batch

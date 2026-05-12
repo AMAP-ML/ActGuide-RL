@@ -1,0 +1,35 @@
+working_dir: ./
+excludes: ["/.git/"]
+env_vars:
+  HYDRA_FULL_ERROR: "1"
+  SWANLAB_API_KEY: "${SWANLAB_API_KEY:?Set SWANLAB_API_KEY}"
+  SWANLAB_MODE: "cloud"
+  SWANLAB_LOG_DIR: "/mnt/workspace/user/log/swanlab_log"
+  TENSORBOARD_DIR: "/mnt/workspace/user/log/tensorboard_log"
+  TORCH_NCCL_AVOID_RECORD_STREAMS: "1"
+  VLLM_ATTENTION_BACKEND: "XFORMERS"
+  RAY_RUNTIME_ENV_TEMPORARY_REFERENCE_EXPIRATION_S: "3600"
+  ##############
+  # cache roots
+  XDG_CACHE_HOME: "/tmp/jyx_cache"
+  PIP_CACHE_DIR: "/tmp/jyx_cache/pip"
+  # tmp dirs
+  TMPDIR: "/tmp/jyx_cache/tmp"
+  TMP: "/tmp/jyx_cache/tmp"
+  TEMP: "/tmp/jyx_cache/tmp"
+  # HuggingFace
+  HF_HOME: "/tmp/jyx_cache/huggingface"
+  HF_DATASETS_CACHE: "/tmp/jyx_cache/huggingface/datasets"
+  HUGGINGFACE_HUB_CACHE: "/tmp/jyx_cache/huggingface/hub"
+  TRANSFORMERS_CACHE: "/tmp/jyx_cache/huggingface/transformers"
+  # Torch / Triton / CUDA
+  TORCH_HOME: "/tmp/jyx_cache/torch"
+  TORCHINDUCTOR_CACHE_DIR: "/tmp/jyx_cache/torch/inductor"
+  TORCH_EXTENSIONS_DIR: "/tmp/jyx_cache/torch_extensions"
+  TRITON_CACHE_DIR: "/tmp/jyx_cache/triton"
+  CUDA_CACHE_PATH: "/tmp/jyx_cache/nv"
+  # FlashInfer
+  FLASHINFER_CACHE_DIR: "/tmp/jyx_cache/flashinfer"
+  FLASHINFER_WORKSPACE_BASE: "/tmp/jyx_cache"
+  FLASHINFER_WORKSPACE_BASE_DIR: "/tmp/jyx_cache"
+  ###############

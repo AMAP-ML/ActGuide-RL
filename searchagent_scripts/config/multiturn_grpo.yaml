@@ -1,0 +1,52 @@
+hydra:
+  run:
+    dir: ${PROJECT_DIR:-/path/to/ActGuide-RL}
+  job:
+    chdir: false
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+data:
+  max_prompt_length: 30480
+  max_response_length: 40960
+  train_batch_size: 32
+  return_raw_chat: True
+  shuffle: True
+  seed: 42
+
+custom_reward_function:
+  path: ${PROJECT_DIR:-/path/to/ActGuide-RL}/verl/utils/reward_score/llm_judge.py
+  name: compute_score
+  reward_kwargs:
+    endpoint_list:
+      # Reward gateway endpoints. Override at runtime, e.g.:
+      #   custom_reward_function.reward_kwargs.endpoint_list='[http://your-host:8000/reward1/v1,http://your-host:8000/reward2/v1]'
+      - http://127.0.0.1:8000/reward1/v1
+      - http://127.0.0.1:8000/reward2/v1
+      - http://127.0.0.1:8000/reward3/v1
+      - http://127.0.0.1:8000/reward4/v1
+      - http://127.0.0.1:8000/reward5/v1
+      - http://127.0.0.1:8000/reward6/v1
+      - http://127.0.0.1:8000/reward7/v1
+      - http://127.0.0.1:8000/reward8/v1
+    model_name: /mnt/workspace/common/models/Qwen3-30B-A3B-Instruct-2507
+    # model_name: /mnt/workspace/common/models/Qwen3-235B-A22B-Instruct-2507
+    max_concurrent: 50
+    max_retries: 5
+    timeout: 60.0
+
+actor_rollout_ref:
+  hybrid_engine: True
+  rollout:
+    name: sglang
+    multi_turn:
+      enable: True
+      max_assistant_turns: 30
+      max_user_turns: 30
+      tokenization_sanity_check_mode: ignore_strippable
+      format: hermes
+      pass_tool_schema_to_template: false  # set to false when tools are in prompt (e.g. DeepTraceHub)
