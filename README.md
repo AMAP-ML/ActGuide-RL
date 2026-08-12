@@ -1,3 +1,5 @@
+
+
 <h1 align="center" style="margin-top: 10px;">Learning Agentic Policy from Action Guidance</h1>
 
 <p align="center">
@@ -111,5 +113,5 @@ bash searchagent_scripts/test_searchagent.sh
 ## Citation
 
 ```bibtex
-Comming soon.
+Coming soon.
 ```
